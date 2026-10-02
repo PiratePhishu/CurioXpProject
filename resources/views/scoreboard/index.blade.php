@@ -8,6 +8,11 @@
         werkt automatisch bij.
     </div>
 
+    <div class="flex items-center gap-2 mb-4">
+        <label class="font-bold text-curio-blue text-sm">Zoek student:</label>
+        <input type="text" id="studentSearch" placeholder="Naam…" class="border border-curio-border rounded px-2 py-1.5 text-sm w-64">
+    </div>
+
     <div class="bg-white rounded shadow-sm overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-curio-blue text-white">
@@ -35,7 +40,7 @@
                         $level = \App\Support\XpLevel::for($student->total_points);
                         $progress = \App\Support\XpLevel::progress($student->total_points) * 100;
                     @endphp
-                    <tr class="border-b border-curio-border last:border-0">
+                    <tr class="border-b border-curio-border last:border-0" data-search="{{ strtolower($student->name) }}">
                         <td class="py-2 px-3 text-center">{{ $index + 1 }}</td>
                         <td class="py-2 px-3 font-semibold">{{ $student->name }}</td>
                         <td class="py-2 px-3 text-center">
@@ -58,6 +63,9 @@
                         <td colspan="6" class="py-6 text-center text-gray-400 italic">Nog geen studenten toegevoegd.</td>
                     </tr>
                 @endforelse
+                <tr id="noMatchesRow" class="hidden">
+                    <td colspan="6" class="py-6 text-center text-gray-400 italic">Geen studenten gevonden.</td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -69,4 +77,10 @@
             @if (!$loop->last) &nbsp;|&nbsp; @endif
         @endforeach
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.curioXp.filterRows(document.getElementById('studentSearch'), '[data-search]', '#noMatchesRow');
+        });
+    </script>
 @endsection

@@ -9,6 +9,11 @@
         Rangschikt op totaal; 'Gem./lid' maakt teams van ongelijke grootte eerlijk vergelijkbaar.
     </div>
 
+    <div class="flex items-center gap-2 mb-4">
+        <label class="font-bold text-curio-blue text-sm">Zoek student:</label>
+        <input type="text" id="studentSearch" placeholder="Naam…" class="border border-curio-border rounded px-2 py-1.5 text-sm w-64">
+    </div>
+
     <div class="bg-white rounded shadow-sm overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-curio-blue text-white">
@@ -23,7 +28,7 @@
             </thead>
             <tbody>
                 @forelse ($teams as $index => $team)
-                    <tr class="border-b border-curio-border last:border-0">
+                    <tr class="border-b border-curio-border last:border-0" data-search="{{ strtolower($team['members']->pluck('name')->join(', ')) }}">
                         <td class="py-2 px-3 text-center">{{ $index + 1 }}</td>
                         <td class="py-2 px-3 text-center">
                             <span class="inline-block rounded-full bg-[#E8F0F8] text-curio-blue px-2 py-0.5 text-xs font-bold">{{ $team['team'] }}</span>
@@ -38,9 +43,18 @@
                         <td colspan="6" class="py-6 text-center text-gray-400 italic">Nog geen teams ingesteld.</td>
                     </tr>
                 @endforelse
+                <tr id="noMatchesRow" class="hidden">
+                    <td colspan="6" class="py-6 text-center text-gray-400 italic">Geen studenten gevonden.</td>
+                </tr>
             </tbody>
         </table>
     </div>
 
     <div class="mt-3 text-xs text-gray-400">Teams zonder leden verschijnen niet in het klassement.</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.curioXp.filterRows(document.getElementById('studentSearch'), '[data-search]', '#noMatchesRow');
+        });
+    </script>
 @endsection

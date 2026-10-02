@@ -47,4 +47,24 @@ async function sendJSON(url, method, body) {
     }
 }
 
-window.curioXp = { sendJSON, setSaveState };
+function filterRows(input, rowSelector, emptyRowSelector) {
+    const rows = document.querySelectorAll(rowSelector);
+    const emptyRow = emptyRowSelector ? document.querySelector(emptyRowSelector) : null;
+
+    input.addEventListener('input', () => {
+        const query = input.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+            const matches = (row.dataset.search ?? '').includes(query);
+            row.classList.toggle('hidden', !matches);
+            if (matches) {
+                visibleCount += 1;
+            }
+        });
+
+        emptyRow?.classList.toggle('hidden', visibleCount !== 0 || query === '');
+    });
+}
+
+window.curioXp = { sendJSON, setSaveState, filterRows };
