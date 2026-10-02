@@ -10,6 +10,12 @@
 <body class="bg-[#F5F7FA] text-[#424242] font-sans">
     <header class="bg-curio-blue text-white flex items-center gap-4 px-6 py-4">
         <div class="text-2xl font-bold tracking-widest text-curio-orange">CURIO</div>
+        <select
+            class="bg-curio-blue border border-white/30 rounded text-xs text-white px-2 py-1.5"
+            title="Schooljaar (binnenkort: klascode)"
+        >
+            <option>2026/2027</option>
+        </select>
         <div class="flex-1">
             <div class="text-sm"><strong>XP-Tracker</strong> &nbsp;|&nbsp; ICT System Engineer Niveau 4</div>
             <div class="text-sm">Leerjaar 1 &nbsp;|&nbsp; 2026/2027 &nbsp;|&nbsp; XP volgt de student</div>
