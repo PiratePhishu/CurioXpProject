@@ -24,6 +24,10 @@
             <span id="saveDot" style="color:#2E7D32">&#9679;</span>
             <span id="saveText">Opgeslagen</span>
         </div>
+        <form method="POST" action="{{ route('teacher.logout') }}">
+            @csrf
+            <button type="submit" class="text-sm text-white/80 hover:text-white underline">Uitloggen</button>
+        </form>
     </header>
 
     <nav class="bg-white border-b border-curio-border flex gap-1 px-6">

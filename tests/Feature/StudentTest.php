@@ -1,6 +1,11 @@
 <?php
 
 use App\Models\Student;
+use App\Models\User;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 it('adds a new student', function () {
     $response = $this->post('/studenten', [
@@ -9,10 +14,8 @@ it('adds a new student', function () {
     ]);
 
     $response->assertRedirect(route('students.index'));
-    $this->assertDatabaseHas('students', [
-        'name' => 'Nieuwe Student',
-        'team' => 'C',
-    ]);
+    $this->assertDatabaseHas('students', ['team' => 'C']);
+    expect(Student::query()->where('team', 'C')->first()->name)->toBe('Nieuwe Student');
 });
 
 it('updates a student name and team', function () {
@@ -26,9 +29,9 @@ it('updates a student name and team', function () {
     $response->assertOk();
     $this->assertDatabaseHas('students', [
         'id' => $student->id,
-        'name' => 'Nieuwe Naam',
         'team' => 'B',
     ]);
+    expect($student->fresh()->name)->toBe('Nieuwe Naam');
 });
 
 it('clears the team label when set to an empty string', function () {

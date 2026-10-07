@@ -2,7 +2,12 @@
 
 use App\Models\Lesson;
 use App\Models\Student;
+use App\Models\User;
 use App\Models\XpEntry;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 it('aggregates xp per team and ranks teams by total', function () {
     $lesson = Lesson::factory()->create(['max_points' => 1000]);

@@ -9,7 +9,7 @@
         heeft geen invloed op de individuele XP. Pas labels gerust elke week aan bij een wissel.
     </div>
 
-    <form method="POST" action="{{ route('students.store') }}" class="flex flex-wrap items-end gap-2 mb-5">
+    <form method="POST" action="{{ route('students.store') }}" class="flex flex-wrap items-end gap-2 mb-3">
         @csrf
         <div>
             <label class="block text-xs font-bold text-curio-blue mb-1">Naam</label>
@@ -20,6 +20,15 @@
             <input type="text" name="team" maxlength="10" class="border border-curio-border rounded px-2 py-1.5 text-sm w-20" placeholder="A">
         </div>
         <button type="submit" class="bg-curio-orange hover:bg-curio-orange-dark text-white text-sm font-bold rounded px-4 py-2">Student toevoegen</button>
+    </form>
+
+    <form method="POST" action="{{ route('students.import') }}" enctype="multipart/form-data" class="flex flex-wrap items-end gap-2 mb-5">
+        @csrf
+        <div>
+            <label class="block text-xs font-bold text-curio-blue mb-1">Studenten importeren (Excel/CSV, één naam per rij)</label>
+            <input type="file" name="file" required accept=".xlsx,.xls,.csv" class="border border-curio-border rounded px-2 py-1.5 text-sm bg-white">
+        </div>
+        <button type="submit" class="bg-curio-blue hover:bg-curio-blue/90 text-white text-sm font-bold rounded px-4 py-2">Importeren</button>
     </form>
 
     @if ($errors->any())

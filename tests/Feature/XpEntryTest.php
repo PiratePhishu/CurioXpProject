@@ -2,7 +2,12 @@
 
 use App\Models\Lesson;
 use App\Models\Student;
+use App\Models\User;
 use App\Models\XpEntry;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 it('records xp for a student on a lesson', function () {
     $lesson = Lesson::factory()->create(['max_points' => 300]);
