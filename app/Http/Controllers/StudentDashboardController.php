@@ -13,7 +13,7 @@ class StudentDashboardController extends Controller
     {
         $student = Auth::guard('student')->user();
 
-        $lessons = Lesson::query()->orderBy('position')->get();
+        $lessons = Lesson::query()->where('school_class_id', $student->school_class_id)->orderBy('position')->get();
 
         $student->load('xpEntries');
         $totalPoints = $student->totalPoints();

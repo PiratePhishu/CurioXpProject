@@ -7,6 +7,8 @@
         Beheer hier de namen en het huidige teamlabel per student. Klik op een kolomkop (Naam, Team of Totaal XP) om te
         sorteren. Het teamlabel (bijv. A, B, C&hellip;) bepaalt alleen de groepering op het Teamklassement &mdash; het
         heeft geen invloed op de individuele XP. Pas labels gerust elke week aan bij een wissel.
+        Per ongeluk een student verwijderd? Importeer het sjabloon of bestand met die student nogmaals &mdash; de
+        student en al hun XP-geschiedenis worden dan hersteld in plaats van opnieuw aangemaakt.
     </div>
 
     <form method="POST" action="{{ route('students.store') }}" class="flex flex-wrap items-end gap-2 mb-3">
@@ -25,10 +27,11 @@
     <form method="POST" action="{{ route('students.import') }}" enctype="multipart/form-data" class="flex flex-wrap items-end gap-2 mb-5">
         @csrf
         <div>
-            <label class="block text-xs font-bold text-curio-blue mb-1">Studenten importeren (Excel/CSV, één naam per rij)</label>
+            <label class="block text-xs font-bold text-curio-blue mb-1">Studenten importeren (Excel/CSV: studentnummer, naam "Achternaam, Voornaam" per rij)</label>
             <input type="file" name="file" required accept=".xlsx,.xls,.csv" class="border border-curio-border rounded px-2 py-1.5 text-sm bg-white">
         </div>
         <button type="submit" class="bg-curio-blue hover:bg-curio-blue/90 text-white text-sm font-bold rounded px-4 py-2">Importeren</button>
+        <a href="{{ route('students.import.template') }}" class="text-sm text-curio-blue font-semibold hover:underline">Sjabloon downloaden (.xlsx)</a>
     </form>
 
     @if ($errors->any())

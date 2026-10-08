@@ -2,7 +2,9 @@
 
 use App\Http\Middleware\AuthenticateStudent;
 use App\Http\Middleware\AuthenticateTeacher;
+use App\Http\Middleware\EnsureSchoolClassIsSelected;
 use App\Http\Middleware\EnsureStudentPasswordIsChanged;
+use App\Http\Middleware\EnsureTeacherPasswordIsChanged;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.teacher' => AuthenticateTeacher::class,
             'auth.student' => AuthenticateStudent::class,
             'student.password' => EnsureStudentPasswordIsChanged::class,
+            'teacher.password' => EnsureTeacherPasswordIsChanged::class,
+            'class.selected' => EnsureSchoolClassIsSelected::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

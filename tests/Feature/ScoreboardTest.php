@@ -35,3 +35,14 @@ it('treats students without xp entries as zero points', function () {
     $response->assertSee('Nieuwe Student');
     $response->assertSee('Novice');
 });
+
+it('sorts students by name numerically instead of alphabetically', function () {
+    Student::factory()->create(['name' => 'Student 2']);
+    Student::factory()->create(['name' => 'Student 10']);
+    Student::factory()->create(['name' => 'Student 1']);
+
+    $response = $this->get('/?sort=naam&dir=asc');
+
+    $response->assertOk();
+    $response->assertSeeInOrder(['Student 1', 'Student 2', 'Student 10']);
+});

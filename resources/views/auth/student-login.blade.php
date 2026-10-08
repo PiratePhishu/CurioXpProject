@@ -27,10 +27,14 @@
                    class="w-full border border-curio-border rounded px-2 py-1.5 text-sm">
         </div>
 
-        <label class="flex items-center gap-2 text-xs text-gray-500">
-            <input type="checkbox" name="remember">
-            Onthoud mij
-        </label>
+        <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 text-xs text-gray-500">
+                <input type="checkbox" name="remember">
+                Onthoud mij
+            </label>
+
+            <a href="{{ route('student.password.request') }}" class="text-xs text-curio-blue hover:underline">Wachtwoord vergeten?</a>
+        </div>
 
         <button type="submit" class="w-full bg-curio-blue text-white text-sm font-bold rounded px-4 py-2 hover:bg-curio-blue/90">
             Inloggen

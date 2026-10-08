@@ -8,16 +8,20 @@ use App\Models\XpEntry;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class XpEntryController extends Controller
 {
     public function index(Request $request): View
     {
-        $lessons = Lesson::query()->orderBy('position')->get();
+        $schoolClassId = $request->user()->current_school_class_id;
+
+        $lessons = Lesson::query()->where('school_class_id', $schoolClassId)->orderBy('position')->get();
         $currentLesson = $lessons->firstWhere('code', $request->query('lesson')) ?? $lessons->first();
 
         $students = Student::query()
+            ->where('school_class_id', $schoolClassId)
             ->orderBy('position')
             ->with(['xpEntries' => fn ($query) => $query->where('lesson_id', $currentLesson?->id)])
             ->withSum('xpEntries as total_points', 'points')
@@ -31,11 +35,14 @@ class XpEntryController extends Controller
         ]);
     }
 
-    public function overview(): View
+    public function overview(Request $request): View
     {
-        $lessons = Lesson::query()->orderBy('position')->get();
+        $schoolClassId = $request->user()->current_school_class_id;
+
+        $lessons = Lesson::query()->where('school_class_id', $schoolClassId)->orderBy('position')->get();
 
         $students = Student::query()
+            ->where('school_class_id', $schoolClassId)
             ->orderBy('position')
             ->with('xpEntries')
             ->withSum('xpEntries as total_points', 'points')
@@ -50,9 +57,11 @@ class XpEntryController extends Controller
 
     public function update(Request $request): JsonResponse
     {
+        $schoolClassId = $request->user()->current_school_class_id;
+
         $validated = $request->validate([
-            'student_id' => ['required', 'integer', 'exists:students,id'],
-            'lesson_id' => ['required', 'integer', 'exists:lessons,id'],
+            'student_id' => ['required', 'integer', Rule::exists('students', 'id')->where('school_class_id', $schoolClassId)],
+            'lesson_id' => ['required', 'integer', Rule::exists('lessons', 'id')->where('school_class_id', $schoolClassId)],
             'points' => ['nullable', 'integer', 'min:0'],
         ]);
 
@@ -86,8 +95,10 @@ class XpEntryController extends Controller
 
     public function fillAll(Request $request): JsonResponse
     {
+        $schoolClassId = $request->user()->current_school_class_id;
+
         $validated = $request->validate([
-            'lesson_id' => ['required', 'integer', 'exists:lessons,id'],
+            'lesson_id' => ['required', 'integer', Rule::exists('lessons', 'id')->where('school_class_id', $schoolClassId)],
             'points' => ['required', 'integer', 'min:0'],
         ]);
 
@@ -101,13 +112,16 @@ class XpEntryController extends Controller
 
         $now = now();
 
-        $rows = Student::query()->pluck('id')->map(fn (int $studentId) => [
-            'student_id' => $studentId,
-            'lesson_id' => $lesson->id,
-            'points' => $validated['points'],
-            'created_at' => $now,
-            'updated_at' => $now,
-        ])->all();
+        $rows = Student::query()
+            ->where('school_class_id', $schoolClassId)
+            ->pluck('id')
+            ->map(fn (int $studentId) => [
+                'student_id' => $studentId,
+                'lesson_id' => $lesson->id,
+                'points' => $validated['points'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all();
 
         if ($rows !== []) {
             XpEntry::query()->upsert($rows, ['student_id', 'lesson_id'], ['points', 'updated_at']);

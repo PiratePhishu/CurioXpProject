@@ -18,12 +18,13 @@ class ScoreboardController extends Controller
         $direction = $request->string('dir', 'desc')->toString();
 
         $students = Student::query()
+            ->where('school_class_id', $request->user()->current_school_class_id)
             ->withSum('xpEntries as total_points', 'points')
             ->get()
             ->each(fn (Student $student) => $student->total_points ??= 0);
 
         $students = (match ($sort) {
-            'naam' => $students->sortBy('name', descending: $direction === 'desc'),
+            'naam' => $students->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE, $direction === 'desc'),
             'team' => $students->sortBy('team', descending: $direction === 'desc'),
             default => $students->sortBy('total_points', descending: $direction === 'desc'),
         })->values();

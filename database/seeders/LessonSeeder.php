@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Lesson;
+use App\Models\SchoolClass;
 use Illuminate\Database\Seeder;
 
 class LessonSeeder extends Seeder
@@ -35,9 +36,11 @@ class LessonSeeder extends Seeder
      */
     public function run(): void
     {
+        $schoolClass = SchoolClass::query()->firstOrFail();
+
         foreach (self::LESSONS as $position => $lesson) {
             Lesson::query()->updateOrCreate(
-                ['code' => $lesson['code']],
+                ['school_class_id' => $schoolClass->id, 'code' => $lesson['code']],
                 [
                     'week' => $lesson['week'],
                     'name' => $lesson['name'],

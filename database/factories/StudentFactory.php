@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\SchoolClass;
 use App\Models\Student;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -24,6 +25,7 @@ class StudentFactory extends Factory
     public function definition(): array
     {
         return [
+            'school_class_id' => fn () => SchoolClass::query()->first()?->id ?? SchoolClass::factory(),
             'name' => $this->faker->name(),
             'team' => $this->faker->randomElement(['A', 'B', 'C', 'D']),
             'position' => $this->faker->unique()->numberBetween(1, 1000),

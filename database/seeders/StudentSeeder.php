@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\SchoolClass;
 use App\Models\Student;
 use Illuminate\Database\Seeder;
 
@@ -27,8 +28,11 @@ class StudentSeeder extends Seeder
             return;
         }
 
+        $schoolClass = SchoolClass::query()->firstOrFail();
+
         for ($position = 1; $position <= 24; $position++) {
             Student::query()->create([
+                'school_class_id' => $schoolClass->id,
                 'name' => "Student {$position}",
                 'team' => chr(65 + intdiv($position - 1, self::TEAM_SIZE)),
                 'position' => $position,

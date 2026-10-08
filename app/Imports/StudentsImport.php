@@ -19,27 +19,51 @@ class StudentsImport implements ToCollection
 
     public int $updated = 0;
 
+    public int $skipped = 0;
+
+    public function __construct(private readonly int $schoolClassId) {}
+
     public function collection(Collection $rows): void
     {
-        $nextPosition = ((int) Student::query()->max('position')) + 1;
+        $nextPosition = ((int) Student::withTrashed()->where('school_class_id', $this->schoolClassId)->max('position')) + 1;
 
-        // Name and email are encrypted columns, so they can't be matched with a
-        // database-level WHERE (the same plaintext never encrypts to the same
-        // ciphertext twice). Loading the full table once and comparing the
-        // decrypted values in PHP is fine at this scale (a single class roster).
-        $students = Student::query()->get();
-        $emails = $students->pluck('email')->filter()->all();
+        // Email is an encrypted column, so it can't be matched with a database-level
+        // WHERE (the same plaintext never encrypts to the same ciphertext twice).
+        // Loading the class's roster once and comparing the decrypted values in PHP
+        // is fine at this scale (a single class roster). Trashed students are
+        // included so a student who was accidentally removed is restored by a
+        // re-import instead of getting a second, blank account.
+        $students = Student::withTrashed()->where('school_class_id', $this->schoolClassId)->get();
 
         foreach ($rows as $row) {
-            $name = trim((string) ($row[0] ?? ''));
+            $studentNumber = $this->normalizeStudentNumber($row[0] ?? '');
+            $naam = trim((string) ($row[1] ?? ''));
 
-            if ($name === '' || in_array(Str::lower($name), ['naam', 'name'], true)) {
+            if ($studentNumber === '' && $naam === '') {
                 continue;
             }
 
-            $existing = $students->first(fn (Student $student) => Str::lower($student->name) === Str::lower($name));
+            if (! ctype_digit($studentNumber)) {
+                // Header row (e.g. "Studentnummer") or other non-data row.
+                continue;
+            }
+
+            if ($naam === '') {
+                $this->skipped++;
+
+                continue;
+            }
+
+            $name = $this->formatName($naam);
+            $email = Str::lower("D{$studentNumber}@edu.curio.nl");
+
+            $existing = $students->first(fn (Student $student) => Str::lower($student->email ?? '') === $email);
 
             if ($existing) {
+                if ($existing->trashed()) {
+                    $existing->restore();
+                }
+
                 if ($existing->name !== $name) {
                     $existing->update(['name' => $name]);
                 }
@@ -49,10 +73,8 @@ class StudentsImport implements ToCollection
                 continue;
             }
 
-            $email = $this->uniqueEmail($name, $emails);
-            $emails[] = $email;
-
             $students->push(Student::query()->create([
+                'school_class_id' => $this->schoolClassId,
                 'name' => $name,
                 'email' => $email,
                 'password' => self::PREVIEW_PASSWORD,
@@ -65,19 +87,26 @@ class StudentsImport implements ToCollection
     }
 
     /**
-     * @param  array<int, string>  $existingEmails
+     * Excel/PhpSpreadsheet reads a plain numeric cell as a float (e.g. 318218.0),
+     * so strip that back down to a clean digit string.
      */
-    private function uniqueEmail(string $name, array $existingEmails): string
+    private function normalizeStudentNumber(mixed $value): string
     {
-        $base = Str::slug($name, '.') ?: 'student';
-        $email = "{$base}@curio-demo.test";
-        $suffix = 1;
+        return is_numeric($value) ? (string) (int) $value : trim((string) $value);
+    }
 
-        while (in_array($email, $existingEmails, true)) {
-            $suffix++;
-            $email = "{$base}{$suffix}@curio-demo.test";
+    /**
+     * The source sheet lists names as "Achternaam, Voornaam [tussenvoegsel]".
+     * Reformat to "Voornaam [tussenvoegsel] Achternaam" for display.
+     */
+    private function formatName(string $naam): string
+    {
+        if (! str_contains($naam, ',')) {
+            return $naam;
         }
 
-        return $email;
+        [$lastName, $firstName] = array_map('trim', explode(',', $naam, 2));
+
+        return trim("{$firstName} {$lastName}");
     }
 }

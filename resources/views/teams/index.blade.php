@@ -28,12 +28,20 @@
             </thead>
             <tbody>
                 @forelse ($teams as $index => $team)
-                    <tr class="border-b border-curio-border last:border-0" data-search="{{ strtolower($team['members']->pluck('name')->join(', ')) }}">
+                    <tr
+                        class="border-b border-curio-border last:border-0 cursor-pointer hover:bg-[#F5F7FA]"
+                        data-search="{{ strtolower($team['members']->pluck('name')->join(', ')) }}"
+                        onclick="window.location = '{{ route('teams.show', $team['team']) }}';"
+                    >
                         <td class="py-2 px-3 text-center">{{ $index + 1 }}</td>
                         <td class="py-2 px-3 text-center">
                             <span class="inline-block rounded-full bg-[#E8F0F8] text-curio-blue px-2 py-0.5 text-xs font-bold">{{ $team['team'] }}</span>
                         </td>
-                        <td class="py-2 px-3">{{ $team['members']->pluck('name')->join(', ') }}</td>
+                        <td class="py-2 px-3">
+                            <a href="{{ route('teams.show', $team['team']) }}" class="hover:underline hover:text-curio-blue">
+                                {{ $team['members']->pluck('name')->join(', ') }}
+                            </a>
+                        </td>
                         <td class="py-2 px-3 text-center">{{ $team['count'] }}</td>
                         <td class="py-2 px-3 text-center font-bold text-curio-green">{{ $team['total_points'] }}</td>
                         <td class="py-2 px-3 text-center">{{ $team['average'] }}</td>

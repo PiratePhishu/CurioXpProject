@@ -8,17 +8,38 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#F5F7FA] text-[#424242] font-sans">
+    @php
+        $schoolYears = \App\Models\SchoolYear::query()
+            ->with(['classes' => fn ($query) => $query->orderBy('name')])
+            ->orderBy('name')
+            ->get();
+        $currentSchoolClass = auth()->user()?->currentSchoolClass;
+    @endphp
+
     <header class="bg-curio-blue text-white flex items-center gap-4 px-6 py-4">
         <div class="text-2xl font-bold tracking-widest text-curio-orange">CURIO</div>
-        <select
-            class="bg-curio-blue border border-white/30 rounded text-xs text-white px-2 py-1.5"
-            title="Schooljaar (binnenkort: klascode)"
-        >
-            <option>2026/2027</option>
-        </select>
+        <form method="POST" action="{{ route('classes.activate') }}">
+            @csrf
+            <select
+                name="school_class_id"
+                onchange="this.form.submit()"
+                class="bg-curio-blue border border-white/30 rounded text-xs text-white px-2 py-1.5"
+                title="Klas wisselen"
+            >
+                @forelse ($schoolYears as $schoolYear)
+                    <optgroup label="{{ $schoolYear->name }}">
+                        @foreach ($schoolYear->classes as $class)
+                            <option value="{{ $class->id }}" @selected($currentSchoolClass?->id === $class->id)>{{ $class->name }}</option>
+                        @endforeach
+                    </optgroup>
+                @empty
+                    <option>Geen klassen</option>
+                @endforelse
+            </select>
+        </form>
         <div class="flex-1">
             <div class="text-sm"><strong>XP-Tracker</strong> &nbsp;|&nbsp; ICT System Engineer Niveau 4</div>
-            <div class="text-sm">Leerjaar 1 &nbsp;|&nbsp; 2026/2027 &nbsp;|&nbsp; XP volgt de student</div>
+            <div class="text-sm">{{ $currentSchoolClass?->schoolYear?->name }} &nbsp;|&nbsp; {{ $currentSchoolClass?->name ?? 'Geen klas geselecteerd' }} &nbsp;|&nbsp; XP volgt de student</div>
         </div>
         <div class="text-sm flex items-center gap-1">
             <span id="saveDot" style="color:#2E7D32">&#9679;</span>
@@ -37,6 +58,7 @@
                 'teams' => ['label' => 'Teamklassement', 'route' => 'teams'],
                 'xp' => ['label' => 'XP invoeren', 'route' => 'xp.index'],
                 'students' => ['label' => 'Studenten & teams', 'route' => 'students.index'],
+                'classes' => ['label' => 'Klassen', 'route' => 'classes.index'],
             ];
         @endphp
         @foreach ($tabs as $key => $tab)

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Lesson;
+use App\Models\SchoolClass;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +19,7 @@ class LessonFactory extends Factory
     public function definition(): array
     {
         return [
+            'school_class_id' => fn () => SchoolClass::query()->first()?->id ?? SchoolClass::factory(),
             'code' => 'L'.$this->faker->unique()->numberBetween(1, 1000),
             'week' => (string) $this->faker->numberBetween(1, 16),
             'name' => $this->faker->sentence(3),

@@ -15,6 +15,12 @@
 
     <main class="flex-1 flex items-center justify-center px-6 py-12">
         <div class="bg-white rounded shadow-sm w-full max-w-sm p-6">
+            @if (session('status'))
+                <div class="mb-4 rounded bg-curio-green-light text-curio-green px-4 py-3 text-sm">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             @yield('content')
         </div>
     </main>

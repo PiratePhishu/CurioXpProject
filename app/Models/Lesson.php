@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\LessonFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lesson extends Model
@@ -13,6 +14,7 @@ class Lesson extends Model
     use HasFactory;
 
     protected $fillable = [
+        'school_class_id',
         'code',
         'week',
         'name',
@@ -26,5 +28,13 @@ class Lesson extends Model
     public function xpEntries(): HasMany
     {
         return $this->hasMany(XpEntry::class);
+    }
+
+    /**
+     * @return BelongsTo<SchoolClass, $this>
+     */
+    public function schoolClass(): BelongsTo
+    {
+        return $this->belongsTo(SchoolClass::class);
     }
 }
