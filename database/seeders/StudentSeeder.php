@@ -36,7 +36,7 @@ class StudentSeeder extends Seeder
                 'name' => "Student {$position}",
                 'team' => chr(65 + intdiv($position - 1, self::TEAM_SIZE)),
                 'position' => $position,
-                'email' => "student{$position}@curio-demo.test",
+                'email' => "D{$position}@curio.test.nl",
                 'password' => self::PREVIEW_PASSWORD,
                 'must_change_password' => true,
             ]);

@@ -19,6 +19,7 @@ class SchoolClassController extends Controller
         return view('classes.index', [
             'classes' => SchoolClass::query()->with('schoolYear')->withCount('students')->orderBy('name')->get(),
             'defaultYear' => SchoolYear::currentAcademicYearLabel(),
+            'yearOptions' => SchoolYear::selectableLabels(),
         ]);
     }
 

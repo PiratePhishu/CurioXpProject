@@ -4,6 +4,7 @@ namespace App\Auth;
 
 use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Str;
 
 class EncryptedEloquentUserProvider extends EloquentUserProvider
 {
@@ -31,7 +32,16 @@ class EncryptedEloquentUserProvider extends EloquentUserProvider
 
         return $this->newModelQuery()->get()->first(function (Authenticatable $model) use ($credentials) {
             foreach ($credentials as $key => $value) {
-                if ($model->{$key} !== $value) {
+                $modelValue = $model->{$key};
+
+                // Emails are entered by hand and imported from a spreadsheet, so
+                // compare them case-insensitively rather than requiring an exact
+                // byte-for-byte match.
+                $matches = is_string($modelValue) && is_string($value)
+                    ? Str::lower($modelValue) === Str::lower($value)
+                    : $modelValue === $value;
+
+                if (! $matches) {
                     return false;
                 }
             }

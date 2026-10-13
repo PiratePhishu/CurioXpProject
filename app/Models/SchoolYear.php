@@ -35,4 +35,31 @@ class SchoolYear extends Model
 
         return "{$startYear}/".($startYear + 1);
     }
+
+    /**
+     * Labels to offer when picking a school year for a new class: the current
+     * academic year plus a run of upcoming ones, merged with any year that
+     * already exists (e.g. one created on the fly in the past), sorted
+     * chronologically.
+     *
+     * @return array<int, string>
+     */
+    public static function selectableLabels(int $yearsAhead = 9): array
+    {
+        $now = now();
+        $startYear = $now->month >= 8 ? $now->year : $now->year - 1;
+
+        $generated = [];
+
+        for ($i = 0; $i <= $yearsAhead; $i++) {
+            $generated[] = ($startYear + $i).'/'.($startYear + $i + 1);
+        }
+
+        return collect($generated)
+            ->merge(self::query()->pluck('name'))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
 }
