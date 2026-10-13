@@ -17,7 +17,11 @@
         </div>
         <div>
             <label class="block text-xs font-bold text-curio-blue mb-1">Schooljaar</label>
-            <input type="text" name="year" required value="{{ old('year', $defaultYear) }}" class="border border-curio-border rounded px-2 py-1.5 text-sm w-28">
+            <select name="year" required class="border border-curio-border rounded px-2 py-1.5 text-sm w-28">
+                @foreach ($yearOptions as $year)
+                    <option value="{{ $year }}" @selected(old('year', $defaultYear) === $year)>{{ $year }}</option>
+                @endforeach
+            </select>
         </div>
         <button type="submit" class="bg-curio-orange hover:bg-curio-orange-dark text-white text-sm font-bold rounded px-4 py-2">Klas toevoegen</button>
     </form>
