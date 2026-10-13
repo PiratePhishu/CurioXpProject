@@ -22,6 +22,18 @@ it('logs a student in and forces a password change on first login', function () 
     $this->get(route('student.dashboard'))->assertRedirect(route('student.password.edit'));
 });
 
+it('logs a student in when the email is typed with different casing', function () {
+    $student = Student::factory()->create(['email' => 'd318218@edu.curio.nl', 'password' => 'password']);
+
+    $response = $this->post(route('student.login.store'), [
+        'email' => 'D318218@edu.curio.nl',
+        'password' => 'password',
+    ]);
+
+    $response->assertRedirect(route('student.dashboard'));
+    $this->assertAuthenticatedAs($student, 'student');
+});
+
 it('rejects a student login with incorrect credentials', function () {
     $student = Student::factory()->create(['password' => 'password']);
 
