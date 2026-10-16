@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PendingStudentImport;
 use App\Models\Student;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +33,9 @@ class StudentController extends Controller
             'students' => $students,
             'sort' => $sort,
             'direction' => $direction,
+            'openImportConflictCount' => PendingStudentImport::query()
+                ->where('school_class_id', $request->user()->current_school_class_id)
+                ->count(),
         ]);
     }
 
