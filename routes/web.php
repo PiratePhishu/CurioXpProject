@@ -5,6 +5,7 @@ use App\Http\Controllers\ScoreboardController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\StudentForgotPasswordController;
+use App\Http\Controllers\StudentImportConflictController;
 use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\StudentLoginController;
 use App\Http\Controllers\StudentPasswordController;
@@ -61,6 +62,9 @@ Route::middleware('auth.teacher:web')->group(function () {
             Route::delete('/studenten/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
             Route::get('/studenten/sjabloon', [StudentImportController::class, 'template'])->name('students.import.template');
             Route::post('/studenten/importeren', [StudentImportController::class, 'store'])->name('students.import');
+            Route::get('/studenten/importeren/conflicten', [StudentImportConflictController::class, 'index'])->name('students.import.conflicts');
+            Route::post('/studenten/importeren/conflicten', [StudentImportConflictController::class, 'resolve'])->name('students.import.conflicts.resolve');
+            Route::delete('/studenten/importeren/conflicten', [StudentImportConflictController::class, 'destroy'])->name('students.import.conflicts.destroy');
         });
     });
 });

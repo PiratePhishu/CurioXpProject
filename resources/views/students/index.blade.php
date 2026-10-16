@@ -11,6 +11,13 @@
         student en al hun XP-geschiedenis worden dan hersteld in plaats van opnieuw aangemaakt.
     </div>
 
+    @if ($openImportConflictCount > 0)
+        <div class="mb-4 rounded bg-red-50 text-red-700 px-4 py-3 text-sm">
+            Er zijn {{ $openImportConflictCount }} importconflicten open (dubbele studentnummers).
+            <a href="{{ route('students.import.conflicts') }}" class="font-bold underline">Nu oplossen</a>
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('students.store') }}" class="flex flex-wrap items-end gap-2 mb-3">
         @csrf
         <div>
@@ -30,7 +37,7 @@
             <label class="block text-xs font-bold text-curio-blue mb-1">Studenten importeren (Excel/CSV: studentnummer, naam "Achternaam, Voornaam" per rij)</label>
             <input type="file" name="file" required accept=".xlsx,.xls,.csv" class="border border-curio-border rounded px-2 py-1.5 text-sm bg-white">
         </div>
-        <button type="submit" class="bg-curio-blue hover:bg-curio-blue/90 text-white text-sm font-bold rounded px-4 py-2">Importeren</button>
+        <button type="submit" @disabled($openImportConflictCount > 0) title="{{ $openImportConflictCount > 0 ? 'Los eerst de open importconflicten op' : '' }}" class="bg-curio-blue hover:bg-curio-blue/90 text-white text-sm font-bold rounded px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed">Importeren</button>
         <a href="{{ route('students.import.template') }}" class="text-sm text-curio-blue font-semibold hover:underline">Sjabloon downloaden (.xlsx)</a>
     </form>
 

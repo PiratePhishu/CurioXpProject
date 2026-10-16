@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Models\PendingStudentImport;
 use App\Models\Student;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -9,31 +10,75 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 
 class StudentsImport implements ToCollection
 {
-    /**
-     * Preview password for newly imported student accounts. Students are required
-     * to change this on first login.
-     */
-    private const PREVIEW_PASSWORD = 'Welkom123!';
-
     public int $created = 0;
 
     public int $updated = 0;
 
     public int $skipped = 0;
 
-    public function __construct(private readonly int $schoolClassId) {}
+    public int $conflicts = 0;
+
+    public function __construct(
+        private readonly int $schoolClassId,
+        private readonly int $userId,
+    ) {}
 
     public function collection(Collection $rows): void
     {
-        $nextPosition = ((int) Student::withTrashed()->where('school_class_id', $this->schoolClassId)->max('position')) + 1;
+        $roster = new StudentRoster($this->schoolClassId);
 
         // Email is an encrypted column, so it can't be matched with a database-level
         // WHERE (the same plaintext never encrypts to the same ciphertext twice).
-        // Loading the class's roster once and comparing the decrypted values in PHP
-        // is fine at this scale (a single class roster). Trashed students are
-        // included so a student who was accidentally removed is restored by a
-        // re-import instead of getting a second, blank account.
-        $students = Student::withTrashed()->where('school_class_id', $this->schoolClassId)->get();
+        // Every student in every class is loaded once and compared on the decrypted
+        // value in PHP, which is fine at this scale. All classes are searched because
+        // the email is the student's login: the same student number in two classes
+        // would make that login ambiguous. Trashed students are included so a student
+        // who was accidentally removed is restored instead of getting a second account.
+        $studentsByEmail = Student::withTrashed()->get()
+            ->keyBy(fn (Student $student) => Str::lower($student->email ?? ''));
+
+        foreach ($this->namesByStudentNumber($rows) as $studentNumber => $names) {
+            $existing = $studentsByEmail->get(StudentRoster::emailFor($studentNumber));
+            $isInOtherClass = $existing !== null && $existing->school_class_id !== $this->schoolClassId;
+
+            if (count($names) > 1 || $isInOtherClass) {
+                PendingStudentImport::query()->create([
+                    'user_id' => $this->userId,
+                    'school_class_id' => $this->schoolClassId,
+                    'existing_student_id' => $existing?->id,
+                    'student_number' => (string) $studentNumber,
+                    'candidate_names' => $names,
+                ]);
+
+                $this->conflicts++;
+
+                continue;
+            }
+
+            if ($existing) {
+                $roster->refresh($existing, $names[0]);
+
+                $this->updated++;
+
+                continue;
+            }
+
+            $roster->create((string) $studentNumber, $names[0]);
+
+            $this->created++;
+        }
+    }
+
+    /**
+     * Group the sheet's data rows by student number, keeping every distinct name
+     * a number appears with (in file order). Rows repeating the exact same number
+     * and name collapse into one.
+     *
+     * @return array<string, list<string>>
+     */
+    private function namesByStudentNumber(Collection $rows): array
+    {
+        $namesByStudentNumber = [];
 
         foreach ($rows as $row) {
             $studentNumber = $this->normalizeStudentNumber($row[0] ?? '');
@@ -55,35 +100,13 @@ class StudentsImport implements ToCollection
             }
 
             $name = $this->formatName($naam);
-            $email = Str::lower("D{$studentNumber}@edu.curio.nl");
 
-            $existing = $students->first(fn (Student $student) => Str::lower($student->email ?? '') === $email);
-
-            if ($existing) {
-                if ($existing->trashed()) {
-                    $existing->restore();
-                }
-
-                if ($existing->name !== $name) {
-                    $existing->update(['name' => $name]);
-                }
-
-                $this->updated++;
-
-                continue;
+            if (! in_array($name, $namesByStudentNumber[$studentNumber] ?? [], true)) {
+                $namesByStudentNumber[$studentNumber][] = $name;
             }
-
-            $students->push(Student::query()->create([
-                'school_class_id' => $this->schoolClassId,
-                'name' => $name,
-                'email' => $email,
-                'password' => self::PREVIEW_PASSWORD,
-                'must_change_password' => true,
-                'position' => $nextPosition++,
-            ]));
-
-            $this->created++;
         }
+
+        return $namesByStudentNumber;
     }
 
     /**
